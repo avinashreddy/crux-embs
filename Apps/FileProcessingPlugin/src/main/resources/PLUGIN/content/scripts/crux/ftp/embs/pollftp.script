@@ -1,0 +1,11 @@
+pipelineTask = {};
+pipelineTask['categoryList'] = ['embs'];
+
+request = {};
+request['ftpCode'] = 'embs';
+request['files'] = ["FHL_MS"];
+
+pipelineTask['content'] = json(request);
+pipelineTask['contentType'] = 'text/vnd.rapture.ftp.poll';
+
+#pipeline.publishMessageToCategory(pipelineTask);

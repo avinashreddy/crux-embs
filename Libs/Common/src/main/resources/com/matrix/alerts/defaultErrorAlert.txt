@@ -1,0 +1,19 @@
+Host: $SERVER_HOST_NAME$
+$if(MESSAGE_PREFIX)$
+$\n$$MESSAGE_PREFIX$$\n$
+$endif$
+$if(JOB_NAME)$
+Job: $JOB_NAME$
+$endif$
+$if(JOB_NAME)$
+Step: $STEP_NAME$
+$endif$
+$if(WORKORDER_URI)$
+Workorder URI: $WORKORDER_URI$
+$endif$
+$if(ERROR_RESOLUTION)$
+Error Resolution: $ERROR_RESOLUTION$
+$endif$
+$if(ERROR_MESSAGE)$
+$\n$Error Message: $ERROR_MESSAGE$
+$endif$

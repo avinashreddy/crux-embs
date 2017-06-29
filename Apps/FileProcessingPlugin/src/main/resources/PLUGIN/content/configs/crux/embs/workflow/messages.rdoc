@@ -1,0 +1,8 @@
+{
+  "DATA_ARCHIVE_SUCCESS_SUBJECT" : "Success: Data archived to warehouse",
+  "DATA_ARCHIVE_ERROR_SUBJECT" : "Failure: Data archived failed",
+  "YIELDBOOK_DATA_ARCHIVE_SUCCESS_SUBJECT" : "Yieldbook Success: Data archived",
+  "YIELDBOOK_DATA_ARCHIVE_ERROR_SUBJECT" : "Yieldbook Failure: Data archive failed",
+  "PIN_DATA_ARCHIVE_SUCCESS_SUBJECT" : "PIN Success: Data archived",
+  "PIN_DATA_ARCHIVE_ERROR_SUBJECT" : "PIN Failure: Data archive failed"
+}

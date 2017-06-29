@@ -1,0 +1,19 @@
+{
+  "jobURI" : "job://jobs/matrix/pin/fetchRates",
+  "description" : "Poll eMBS FTP for new files",
+  "scriptURI" : "script://scripts/crux/ftp/embs/pollftp",
+  "cronSpec" : "0 * * * * *",
+  "timeZone" : "America/New_York",
+  "params" : {
+  },
+  "autoActivate" : true,
+  "activated" : true,
+  "jobType" : "SCRIPT",
+  "maxRuntimeMinutes" : 5,
+  "appStatusNamePattern" : "",
+  "_raptureVersion" : {
+    "minor" : 0,
+    "major" : 2,
+    "micro" : 0
+  }
+}

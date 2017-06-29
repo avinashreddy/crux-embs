@@ -1,0 +1,23 @@
+version = '1.0.0'
+
+apply plugin: 'java'
+jar.manifest.attributes "Implementation-Title" : "EMBS FTP Listener"
+jar.manifest.attributes "Implementation-Version" : version
+
+dependencies {
+  compile "net.rapture:RaptureAPI:$project.raptureVersion"
+  compile "net.rapture:RaptureCore:$project.raptureVersion"
+  compile "net.rapture:RaptureAppConfig:$project.raptureVersion"
+  compile "net.rapture:MongoDb:$project.raptureVersion"
+  compile "net.rapture:RabbitMQ:$project.raptureVersion"
+  compile "net.rapture:ElasticSearch:$project.raptureVersion"
+  compile "com.crux.embs:Common:$version"
+  compile 'org.quickfixj:quickfixj-all:1.6.3'
+  compile 'commons-net:commons-net:3.6'
+  runtime 'org.apache.mina:mina-core:2.0.13'
+  testCompile 'org.easymock:easymock:3.4'
+  testCompile 'org.powermock:powermock-api-easymock:1.6.6'
+  testCompile 'org.powermock:powermock-module-junit4:1.6.6'
+}
+
+mainClassName = 'com.matrix.FixServer'

@@ -1,0 +1,3 @@
+include 'FileProcessingPlugin'
+include 'EmbsServer'
+

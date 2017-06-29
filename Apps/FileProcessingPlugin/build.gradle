@@ -1,0 +1,92 @@
+version = '1.0.0'
+
+ext {
+  raptureVersion = '3.0.4'
+}
+
+apply plugin: 'java'
+
+mainClassName = "rapture.plugin.app.SelfInstaller"
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  maven {
+    url "http://repo.marketcetera.org/maven"
+  }
+}
+
+configurations {
+  included
+  compile {
+    extendsFrom included
+  }
+}
+
+dependencies {
+  compile "net.rapture:SelfPluginInstallerLib:$raptureVersion"
+    compile 'commons-net:commons-net:3.6'
+    included 'org.springframework:spring-web:4.3.9.RELEASE'
+    included 'org.springframework:spring-core:4.3.9.RELEASE'
+    included 'org.springframework:spring-beans:4.3.9.RELEASE'
+    included 'fast-md5:fast-md5:2.6.1'
+
+    included "net.rapture:WorkflowsCommonSteps:1.0.0+"
+}
+
+def includes = configurations.included.getDependencies()
+         .findAll { it instanceof ModuleDependency }
+         .collect { it.getName()+"*.jar" }
+
+task javaCodeJars(type: Jar) {
+   baseName = 'fileprocessing'
+   destinationDir = file("$buildDir/libs")
+   from sourceSets.main.output
+   exclude 'PLUGIN'
+}
+
+task projectJars(type: Copy) {
+  from {
+    configurations.included.files
+  }
+  into "$buildDir/libs"
+}
+
+jar {
+  dependsOn javaCodeJars, projectJars
+  include 'PLUGIN/**'
+  into('PLUGIN/content/workflows/dynamic/') {
+    from("$buildDir/libs") {
+      include includes
+      include "fileprocessing-${version}.jar"
+    }
+    rename {
+      String fileName -> fileName.replaceAll(/[-.][0-9]+/,"") 
+    }
+  }
+}
+
+startScripts {
+  classpath = files(['[REPLACEME]'])
+  doLast {
+    // gradle always puts extra classpaths relative to the lib folder, so we have to replace
+    windowsScript.text = windowsScript.text.replace('%APP_HOME%\\lib\\[REPLACEME]', '%APP_HOME%\\lib\\*;%APP_HOME%\\etc')
+    unixScript.text = unixScript.text.replace('$APP_HOME/lib/[REPLACEME]', '$APP_HOME/lib/*:$APP_HOME/etc')
+  }
+}
+
+test {
+    include 'rapture/**'
+
+    // set JVM arguments for the test JVM(s)
+    jvmArgs '-noverify'
+
+    // print out the currently running test
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+

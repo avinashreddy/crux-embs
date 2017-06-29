@@ -1,0 +1,10 @@
+{
+  "authority":"configs",
+  "strictCheck":true,
+  "indexes":[],
+  "fullTextIndexes":[],
+  "documentRepo":{
+    "authority":"configs",
+    "config":"NREP {} USING MONGODB { prefix=\"configs\" }"
+  }
+}
