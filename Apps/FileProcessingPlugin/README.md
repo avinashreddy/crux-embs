@@ -18,7 +18,7 @@ Following containers must be running. Refer [Matrix Setup](../../README.md).
 ```
 docker run -e HOST=curtis  -e PASSWORD=rapture -e OVERLAY=dev --link curtis --link postgres --name fileprocessingplugin avinashreddy/fileprocessingplugin 
 ```
-The plugin contains the eMBS workflow. It also installs configuration required for eMBS Server. Update cruxApiurl, cruxApiKey and cruxDatasetId in document://configs/crux/embs/workflow/config.  
+The plugin contains the eMBS workflow. It also installs configuration required for eMBS Server. Update cruxApiurl, cruxApiKey and cruxDatasetId in document://configs/crux/embs/workflow/config. eMBS FTP configuration can be updated in document://configs/crux/ftp/config 
 
 **Start eMBS Server** 
 ```
@@ -27,5 +27,7 @@ docker run -eUI_URL=http://localhost:8000 -e SERVER_ENV=DEV -d --link mongo --li
 Check the status of eMBS Server by running **docker logs -f embsserver**.  You should see the following message at the bottom:
 > "*** EMBSServer successfully started ***"
 
-This completes installation. There is a Job that runs every minute to check for signal files. This is currently not working. Run the script script://scripts/crux/ftp/embs/pollftp instead to process files.
+This completes installation. 
+
+There is a Job that runs every minute to check for signal files. This is currently not working. Run the script script://scripts/crux/ftp/embs/pollftp instead to process files.
 A work order is created for each .ZIP file processed.  
