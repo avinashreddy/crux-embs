@@ -9,7 +9,7 @@
     "executable" : "dp_java_invocable://embs.ConfigurationStep",
     "transitions" : [ {
       "name" : "next",
-      "targetStep" : "downloadFile"
+      "targetStep" : "createTableIfNotExistStep"
     }, {
       "name" : "",
       "targetStep" : "$FAIL"
@@ -17,6 +17,18 @@
     "softTimeout" : -1,
     "jarUriDependencies" : [ ]
   },
+    {
+      "name" : "createTableIfNotExistStep",
+      "description" : "Create Crux table if it does not exist",
+      "executable" : "dp_java_invocable://embs.CreateTableIfNotExistStep",
+      "transitions" : [ {
+        "name" : "next",
+        "targetStep" : "downloadFile"
+      }, {
+        "name" : "",
+        "targetStep" : "$FAIL"
+      } ]
+    },
   {
     "name" : "downloadFile",
     "description" : "download file from FTP",
@@ -57,6 +69,18 @@
       "name" : "loadFileToTable",
       "description" : "upload file to crux",
       "executable" : "dp_java_invocable://embs.LoadFileToTableStep",
+      "transitions" : [ {
+        "name" : "next",
+        "targetStep" : "deleteWorkFile"
+      }, {
+        "name" : "",
+        "targetStep" : "$FAIL"
+      } ]
+    },
+    {
+      "name" : "deleteWorkFile",
+      "description" : "upload file to crux",
+      "executable" : "dp_java_invocable://embs.DeleteWorkFileStep",
       "transitions" : [ {
         "name" : "next",
         "targetStep" : "successNotificationStep"

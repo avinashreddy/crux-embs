@@ -29,6 +29,8 @@ dependencies {
     included 'org.springframework:spring-web:4.3.9.RELEASE'
     included 'org.springframework:spring-core:4.3.9.RELEASE'
     included 'org.springframework:spring-beans:4.3.9.RELEASE'
+    included 'commons-io:commons-io:2.5'
+
 //    included 'fast-md5:fast-md5:2.6.1'
 
     included "net.rapture:WorkflowsCommonSteps:1.0.0+"

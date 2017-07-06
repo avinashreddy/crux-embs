@@ -1,23 +1,31 @@
 package com.crux.embs;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+import rapture.dp.invocable.embs.TransformFileStep;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class FileSplitter2 {
 
-    Logger log = LoggerFactory.getLogger(FileSplitter2.class);
+    final Logger log;
 
-    public List<String> split(String filePath, String targetDir, LineTransformer lineTransformer, String extension, int splitSize) {
-        log.info("Processing file {}", filePath);
+    public FileSplitter2(Logger logger) {
+        this.log = logger;
+    }
+
+    public Map<String, Object> split(String filePath, String targetDir, LineTransformer lineTransformer, String extension) {
+        log.info(String.format("Processing file %s", filePath));
         final LineIterator it;
         try {
             it = FileUtils.lineIterator(new File(filePath), "UTF-8");
@@ -25,45 +33,39 @@ public class FileSplitter2 {
             throw new IllegalStateException("Error building LineIterator " + filePath);
         }
 
-        List<String> ret = new ArrayList<>();
+
+        BufferedWriter buffer = null;
+        final String targetFile = getTargetFile(filePath, targetDir, extension);
+        int lineCount = 0;
         try {
-            List<String> lines = new ArrayList<>();
-            int splitLineCounter = 0;
-            int splitCount = 0;
+            if(new File(targetFile).exists()) {
+                FileUtils.forceDelete(new File(targetFile));
+            }
+            buffer = new BufferedWriter(openWriter(new File(targetFile), true));
             int colCount = -1;
             while (it.hasNext()) {
                 String line = it.nextLine();
                 int lineColCount = getColCount(line, '|');
-                if(colCount == -1) {
+                if (colCount == -1) {
                     colCount = lineColCount;
                 } else {
                     Preconditions.checkState(colCount == lineColCount, "Expected " + colCount + ". Found " + lineColCount);
                 }
-                ++splitLineCounter;
-                lines.add(lineTransformer.transFormLine(line));
-                if(lines.size() == 100000 || splitLineCounter == splitSize) {
-                    String splitName = null;
-                    if(splitLineCounter == splitSize) {
-                        log.info("Creating file {}", filePath);
-                        getSplitName(filePath, targetDir, splitCount++, extension);
-                        splitLineCounter = 0;
-                        ret.add(splitName);
-                    } else {
-                        splitName = getSplitName(filePath, targetDir, splitCount, extension);
-                    }
-                    writeToFile(splitName, lines);
-                    lines.clear();
+                IOUtils.write(lineTransformer.transFormLine(line), buffer);
+                IOUtils.write(IOUtils.LINE_SEPARATOR, buffer);
+                if(++lineCount % 100000 == 0) {
+                    log.info(lineCount + " lines written to file " + targetFile);
                 }
             }
-            if(!lines.isEmpty()) {
-                String splitName = getSplitName(filePath, targetDir, splitCount, extension);
-                writeToFile(splitName, lines);
-                ret.add(splitName);
-            }
+            log.info("File transformed - " + targetFile);
+            buffer.flush();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         } finally {
+            IOUtils.closeQuietly(buffer);
             LineIterator.closeQuietly(it);
         }
-        return ret;
+        return ImmutableMap.of("fileName", targetFile, "lineCount", lineCount);
     }
 
     private int getColCount(String line, char s) {
@@ -71,18 +73,56 @@ public class FileSplitter2 {
         return StringUtils.countMatches(line, s);
     }
 
-    private String getSplitName(String filePath, String targetDir, int splitCount, String extension) {
+    private String getTargetFile(String filePath, String targetDir, String extension) {
         File f = new File(filePath);
-        return targetDir + "/" + f.getName() + "." + splitCount + extension;
+        return targetDir + "/" + f.getName() + extension;
     }
 
-    private void writeToFile(String filePath, List<String> lines) {
+    private void writeToFile_(String filePath, List<String> lines) {
+        log.info("writing to file " + filePath);
         try {
-            log.info("writing to file {}", filePath);
-
-            FileUtils.writeLines(new File(filePath ), lines);
+            FileUtils.writeLines(new File(filePath), lines, true);
         } catch (IOException e) {
             throw new IllegalStateException("Error writing to file " + filePath);
         }
+    }
+
+    public static FileWriter openWriter(final File file, final boolean append) throws IOException {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                throw new IOException("File '" + file + "' exists but is a directory");
+            }
+            if (file.canWrite() == false) {
+                throw new IOException("File '" + file + "' cannot be written to");
+            }
+        } else {
+            final File parent = file.getParentFile();
+            if (parent != null) {
+                if (!parent.mkdirs() && !parent.isDirectory()) {
+                    throw new IOException("Directory '" + parent + "' could not be created");
+                }
+            }
+        }
+        return new FileWriter(file, append);
+    }
+
+    public static void main(String a[]) {
+        long start = System.currentTimeMillis();
+        FileSplitter2 splitter2 = new FileSplitter2(Logger.getLogger(FileSplitter2.class));
+        splitter2.split(
+                "/Users/avinash.palicharla/embs-ftp-emulator/Products/GNM_LDST.DAT",
+                "/Users/avinash.palicharla/embs-ftp-emulator/Products/temp",
+                new TransformFileStep.MetadataAddingLineTransformer("aaaaaaaaaa,bbbbbbbb,"),
+//                new LineTransformer() {
+//                    final String x = "aaaaaaaaaa|bbbbbbbb|";
+//
+//                    @Override
+//                    public String transFormLine(String line) {
+//                        return x.concat(line);
+//                    }
+//                },
+                ".DAT"
+        );
+        System.out.println((System.currentTimeMillis() - start) / 1000);
     }
 }

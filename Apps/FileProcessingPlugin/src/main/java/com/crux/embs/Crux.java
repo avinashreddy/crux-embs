@@ -4,36 +4,52 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.log4j.Logger;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+
 public class Crux {
 
-    Logger log = LoggerFactory.getLogger(Crux.class);
+    Logger log;
 
     private final String apiurl;
 
     private final String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public Crux(CruxConfiguration cruxConfiguration) {
-        this(cruxConfiguration.getApiurl(), cruxConfiguration.getApiKey());
+    public Crux(CruxConfiguration cruxConfiguration, Logger logger) {
+        this(cruxConfiguration.getApiurl(), cruxConfiguration.getApiKey(), logger);
     }
 
-    public Crux(String apiurl, String apiKey) {
+    public Crux(String apiurl, String apiKey, Logger logger) {
         this.apiurl = apiurl;
         this.apiKey = apiKey;
+        this.log = logger;
+        if(apiurl.contains("https:")) {
+            CloseableHttpClient httpClient
+                    = HttpClients.custom()
+                    .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                    .build();
+            HttpComponentsClientHttpRequestFactory requestFactory
+                    = new HttpComponentsClientHttpRequestFactory();
+            requestFactory.setHttpClient(httpClient);
+        }
+        restTemplate = new RestTemplate();
     }
 
     public boolean tableExists(String datasetId, String tableName) {
@@ -44,13 +60,23 @@ public class Crux {
         return StringUtils.hasText(obj);
     }
 
-    public synchronized void ensureTableExists(String datasetId, String tableName, String schema) {
+    public void ensureTableExists(String datasetId, String tableName, String schema) {
         //TODO: distributed lock required. Or make table creation a separate process.
-        if(!tableExists(datasetId, tableName)) {
-            log.info("Table " + tableName + " does not exist. Creating table");
-            createTable(datasetId, tableName, schema);
-        }
+        log.info("Checking if table "+ tableName +" exists");
+        synchronized(Long.class) {
+            if (!tableExists(datasetId, tableName)) {
+                log.info("Table " + tableName + " does not exist. Creating table");
+                createTable(datasetId, tableName, schema);
+            } else {
+                log.info("Table " + tableName + " exists.");
 
+            }
+
+            while (!tableExists(datasetId, tableName)) {
+                log.info("Waiting for table to be created " + tableName);
+                sleep(5000);
+            }
+        }
     }
 
 
@@ -59,23 +85,29 @@ public class Crux {
     }
 
     public void createTable(String datasetId, String tableName, String schema, String description) {
-        Preconditions.checkState(!tableExists(datasetId, tableName), "Table with name %s exists", tableName);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            Preconditions.checkState(!tableExists(datasetId, tableName), "Table with name %s exists", tableName);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<String> entity = new HttpEntity<>(toJson(ImmutableMap.of("name", tableName, "schema", schema)) ,headers);
-        String table = restTemplate.postForObject(
-                apiurl + "/datasets/{datasetId}/tables?apikey={apikey}",
-                entity,
-                String.class,
-                datasetId  , apiKey);
+            HttpEntity<String> entity = new HttpEntity<>(toJson(ImmutableMap.of("name", tableName, "schema", schema)), headers);
+            String table = restTemplate.postForObject(
+                    apiurl + "/datasets/{datasetId}/tables?apikey={apikey}",
+                    entity,
+                    String.class,
+                    datasetId, apiKey);
+        }catch(Exception e) {
+            throw new IllegalStateException(String.format("Error creating table [name : '%s', schema : '%s']", tableName, schema), e);
+        }
 
     }
 
-    public void uploadFile(String datasetId, String fileName, String filePath) {
-
+    public void uploadFile(String datasetId, String fileName, String targetDir, String filePath) {
+        log.info(String.format("Uploading file [%s] to [%s]", filePath, targetDir));
         LinkedMultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
         map.add(fileName, new FileSystemResource(filePath));
+        map.add("folder", targetDir);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -84,6 +116,11 @@ public class Crux {
                 entity,
                 String.class,
                 datasetId  , apiKey);
+        while (!tableExists(datasetId, new File(filePath).getName())) {
+            log.info("Uploading file " + new File(filePath).getName());
+            sleep(5000);
+        }
+        log.info(String.format("Uploaded file [%s] to [%s]", filePath, targetDir));
 
     }
 
@@ -121,7 +158,7 @@ public class Crux {
 
     public static void main(String[] args) {
         String datsetid = "WyJQcm9maWxlIiwidU9tTFhtRGYydWJXdDRabkJzamR3dlFYVlB2MSIsIkRhdGFTZXQiLDU2Mjk0OTk1MzQyMTMxMjBd";
-        Crux crux = new Crux("http://localhost:8082/api", "a84f086e70b6b14a85c47a9dc1f6da88");
+        Crux crux = new Crux("http://localhost:8082/api", "a84f086e70b6b14a85c47a9dc1f6da88", Logger.getLogger(Crux.class));
 //        System.out.println(crux.tableExists(datsetid, "t_01"));
 //        System.out.println(crux.tableExists(datsetid, "a_01"));
 //        crux.createTable(datsetid, "xxx01", "a:string", "");

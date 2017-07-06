@@ -11,6 +11,8 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rapture.common.CallingContext;
+import rapture.common.LockHandle;
+import rapture.kernel.Kernel;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -22,11 +24,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DownloadFileStep extends AbstractSingleOutcomeStep {
 
-    private final Logger log = LoggerFactory.getLogger(DownloadFileStep.class);
-
+    public static final String EMBS_FILE_DOWNLOAD = "embs-file-download";
 
     public DownloadFileStep(String workerUri, String stepName) {
         super(workerUri, stepName);
@@ -34,12 +36,19 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
 
     @Override
     protected void execute(CallingContext ctx) throws Exception {
+//        LockHandle handle = Kernel.getLock().acquireLock(ctx, "lock://semaphore/", EMBS_FILE_DOWNLOAD, 1200, -1);
+//        Preconditions.checkArgument(handle != null, "Cannot aquire lock " + EMBS_FILE_DOWNLOAD);
+        synchronized (String.class) {
+            doExecute();
+        }
+//        Kernel.getLock().releaseLock(ctx, "lock://semaphore/", EMBS_FILE_DOWNLOAD, handle);
+    }
+
+    private void doExecute() throws IOException {
         final String requestUri = getContextValue("requestURI");
         log.info("Processing requestURI - " + requestUri);
 
         final FileProcessingRequest request = FileProcessingRequestLookup.get(this.ctx, requestUri);
-
-
 
         log.info("Processing request - " + request.toJSON());
 
@@ -66,8 +75,8 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
             setContextLiteral("FILE_DIR", tempDir.toString());
             setContextLiteral("ZIP_FILE_PATH", downloadFile.getAbsolutePath());
             setContextLiteral("REQUEST_TIME_UTC", request.getRequestTimeUTC());
-        }finally {
-            if(outputStream != null) {
+        } finally {
+            if (outputStream != null) {
                 outputStream.close();
             }
             client.disconnect();
@@ -82,8 +91,11 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
                 file.getName().substring(0, file.getName().indexOf('.')),
                 System.currentTimeMillis() + "",
                 root == null ? "" : root
-                ).toFile();
-        dir.mkdirs();
+        ).toFile();
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new IllegalStateException("Cannot create dir '" + dir.getAbsolutePath() + "'");
+        }
         return dir;
     }
+
 }

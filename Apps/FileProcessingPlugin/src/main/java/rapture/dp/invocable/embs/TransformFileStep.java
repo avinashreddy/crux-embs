@@ -28,19 +28,19 @@ import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 
 public class TransformFileStep extends AbstractSingleOutcomeStep {
 
-    private final Logger log = LoggerFactory.getLogger(TransformFileStep.class);
-
     private final Unzip unzip = new Unzip();
 
-    private final FileSplitter2 fileSplitter = new FileSplitter2();
+    private final FileSplitter2 fileSplitter;
 
     private final Gzip gzip = new Gzip();
 
     public TransformFileStep(String workerUri, String stepName) {
         super(workerUri, stepName);
+        fileSplitter =  new FileSplitter2(this.log);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class TransformFileStep extends AbstractSingleOutcomeStep {
         final String zipFilePath = getContextValue("ZIP_FILE_PATH");
         final String workDir = getContextValue("FILE_DIR");
 
-        log.info("Processing ZIP file {}. Work Dir is '{}'", zipFilePath, workDir);
+        log.info(String.format("Processing ZIP file [%s]. Work Dir is [%s]", zipFilePath, workDir));
         final String unzipDir = Paths.get(workDir, "unzip").toString();
         final List<String> files = unzip.unzip(zipFilePath, unzipDir);
 
@@ -56,39 +56,38 @@ public class TransformFileStep extends AbstractSingleOutcomeStep {
                 String.format("Expected 1 file in %s. Found %s", zipFilePath, files.size()));
 
         final String datFile = files.get(0);
-        log.info("Unzipped file {} to {}", zipFilePath, datFile);
-        String csv = transform(datFile,  Paths.get(workDir, "csv").toString(), zipFilePath.toString());
-        log.info("Created CSV {} for file {}", csv, datFile);
+        log.info(String.format("Unzipped file [%s] to [%s]", zipFilePath, datFile));
+        String csv = transform(datFile,  Paths.get(workDir, "tx").toString(), zipFilePath.toString());
+        log.info(String.format("Created [%s] for file [%s]", csv, datFile));
         final String csvgzipFile = gzip.gzip(csv, Paths.get(workDir, "gzip").toString());
         setContextLiteral("GZIP_FILE_PATH", csvgzipFile);
     }
 
     private String transform(String file, String targetDir, String sourceFileName) throws IOException {
-        LineTransformer lt = new MetadataAddingLineTransformer(sourceFileName);
-        List<String> ret = fileSplitter.split(
+        LineTransformer lt = new MetadataAddingLineTransformer(
+                getContextValue("REQUEST_TIME_UTC") + "," + new File(sourceFileName).getName() + ",");
+        Map<String, Object> ret = fileSplitter.split(
                 file, targetDir,
-                lt, ".csv",
-                Integer.MAX_VALUE);
-        return ret.get(0);
+                lt, ".DAT");
+        setContextLiteral("FILE_LINE_COUNT", String.valueOf(ret.get("lineCount")));
+        return (String) ret.get("fileName");
     }
 
-    private class MetadataAddingLineTransformer implements LineTransformer {
-
-        private final String originalFile;
+    public static class MetadataAddingLineTransformer implements LineTransformer {
 
         private final LineTransformer lineTransformer = new CSVLineTransformer();
 
-        private final String requestTimeUTC;
+        private final String prefix;
 
-        private MetadataAddingLineTransformer(String originalFile) {
-            Preconditions.checkArgument(StringUtils.isNoneEmpty(originalFile), "originalFile is null/empty");
-            this.originalFile = originalFile;
-            this.requestTimeUTC = TransformFileStep.this.getContextValue("REQUEST_TIME_UTC");
+        public MetadataAddingLineTransformer(String prefix) {
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(prefix), "prefix is null/empty");
+            this.prefix = prefix;
         }
 
         @Override
         public String transFormLine(String line) {
-            return requestTimeUTC + "," + originalFile + "," + lineTransformer.transFormLine(line);
+            return prefix.concat(lineTransformer.transFormLine(line));
+//            return prefix.concat(line);
         }
     }
 }

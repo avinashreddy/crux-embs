@@ -3,9 +3,58 @@ pipelineTask['categoryList'] = ['embs'];
 
 request = {};
 request['ftpCode'] = 'embs';
-request['files'] = ["FHL_MS"];
+pipelineTask['contentType'] = 'text/vnd.rapture.ftp.poll';
+
+request['files'] = [
+     "ARMINDEX",
+     "FHL_ARST",
+     "FHL_FH",
+     "FHL_LLMD",
+     "FHL_SC",
+     "FNM_ARM",
+     "FNM_FH",
+     "FNM_MODD",
+     "FNM_SEC",
+     "GNM_CS2",
+     "GNM_LDS2",
+     "GNM_SC",
+     "ARMMTRX",
+     "FHL_CPNH",
+     "FHL_GEO",
+     "FHL_MS",
+     "FHL_SEC",
+     "FNM_ARST",
+     "FNM_GEO",
+     "FNM_MODM",
+     "FNM_SVC",
+     "GNM_FH",
+     "GNM_LDS3",
+     "GNM_SEC",
+     "ARMMTRXG",
+     "FHL_CS2",
+     "FHL_ISS",
+     "FHL_MSDT",
+     "FHL_SOAM",
+     "FNM_CPNH",
+     "FNM_ISS",
+     "FNM_QRT",
+     "GNM_ARM",
+     "GNM_GEO",
+     "GNM_LDST",
+     "GNM_SVC",
+     "FHL_ARM",
+     "FHL_DELH",
+     "FHL_LDST",
+     "FHL_QRT",
+     "FHL_SVC",
+     "FNM_CS2",
+     "FNM_LDST",
+     "FNM_SC",
+     "GNM_CPNH",
+     "GNM_ISS",
+     "GNM_QRT",
+     "PREFIX"];
 
 pipelineTask['content'] = json(request);
-pipelineTask['contentType'] = 'text/vnd.rapture.ftp.poll';
 
 #pipeline.publishMessageToCategory(pipelineTask);

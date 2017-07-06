@@ -20,4 +20,4 @@ dependencies {
   testCompile 'org.powermock:powermock-module-junit4:1.6.6'
 }
 
-mainClassName = 'com.matrix.FixServer'
+mainClassName = 'com.crux.embs.EmbsServer'

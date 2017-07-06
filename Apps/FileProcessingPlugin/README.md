@@ -18,11 +18,11 @@ Following containers must be running. Refer [Matrix Setup](../../README.md).
 ```
 docker run -e HOST=curtis  -e PASSWORD=rapture -e OVERLAY=dev --link curtis --link postgres --name fileprocessingplugin avinashreddy/fileprocessingplugin 
 ```
-The plugin contains the eMBS workflow. It also installs configuration required for eMBS Server.  
+The plugin contains the eMBS workflow. It also installs configuration required for eMBS Server. Update cruxApiurl, cruxApiKey and cruxDatasetId in document://configs/crux/embs/workflow/config.  
 
 **Start eMBS Server** 
 ```
-docker run -eUI_URL=http://localhost:8000 -e SERVER_ENV=DEV -d --link mongo --link rabbit --link elasticsearch --link warehouse --link postgres -p 62933:62933 -e SERVER_PROFILE=DEV -e JAVA_OPTS='-Xdebug -Xrunjdwp:transport=dt_socket,address=62933,server=y,suspend=n' --name embsserver avinashreddy/embsserver
+docker run -eUI_URL=http://localhost:8000 -e SERVER_ENV=DEV -d --link mongo --link rabbit --link elasticsearch --link postgres -p 62933:62933 -e SERVER_PROFILE=DEV -e JAVA_OPTS='-Xdebug -Xrunjdwp:transport=dt_socket,address=62933,server=y,suspend=n' --name embsserver avinashreddy/embsserver
 ```
 Check the status of eMBS Server by running **docker logs -f embsserver**.  You should see the following message at the bottom:
 > "*** EMBSServer successfully started ***"

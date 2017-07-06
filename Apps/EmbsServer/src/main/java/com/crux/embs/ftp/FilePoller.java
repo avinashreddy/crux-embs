@@ -46,36 +46,39 @@ public class FilePoller implements QueueHandler {
 
     private void process(FtpPollRequest ftpPollRequest) throws Exception {
         Config ftpConfig = FTPConfigLoader.load(ftpPollRequest.getFtpCode());
-
+        log.info("Polling for new SIG files");
         FTPClient client = new FTPClient();
         String runtimeUTC = ZonedDateTime.now(ZoneOffset.UTC).toString();
         try {
             client.connect(ftpConfig.getString("host"));
-//        client.enterLocalPassiveMode();
+            client.enterLocalPassiveMode();
             client.login(ftpConfig.getString("user"), ftpConfig.getString("password"));
-            FTPFile[] files = client.listFiles("/Signal", file -> ftpPollRequest.getFiles().contains(file.getName().substring(0, file.getName().indexOf("."))));
+            FTPFile[] files = client.listFiles(
+                    ftpConfig.getString("home_dir", "/") + "Signal", file
+                    -> ftpPollRequest.getFiles().contains(file.getName().substring(0, file.getName().indexOf("."))));
+
             log.info(String.format("Found %s .SIG file(s)", files.length));
             for (FTPFile file : files) {
-                processSignalFile(client, file, runtimeUTC);
+                processSignalFile(client, file, runtimeUTC, ftpConfig);
             }
         }finally {
             client.disconnect();
         }
     }
 
-    private void processSignalFile(FTPClient client, FTPFile file, String runtimeUTC) throws IOException {
+    private void processSignalFile(FTPClient client, FTPFile file, String runtimeUTC, Config ftpConfig) throws IOException {
         log.info("Processing " + file.getName());
         final String productFileName = file.getName().substring(0, file.getName().indexOf(".")) + ".ZIP";
 
-        FTPFile[] files = client.listFiles("/Products",  f -> f.getName().equals(productFileName));
+        FTPFile[] files = client.listFiles(ftpConfig.getString("home_dir", "/") + "Products",  f -> f.getName().equals(productFileName));
 
         Preconditions.checkState(files.length == 1,
                 "Expecting one Product file with name '%s' for Signal file '%s'. Found %s.",
                 productFileName, file.getName(), files.length);
 
         FileProcessingRequest request = new FileProcessingRequest();
-        request.setSignalFileName("/Signal/" + file.getName());
-        request.setProductFileName("/Products/" + productFileName);
+        request.setSignalFileName(ftpConfig.getString("home_dir", "/") + "Signal/" + file.getName());
+        request.setProductFileName(ftpConfig.getString("home_dir", "/") + "Products/" + productFileName);
         request.setRequestTimeUTC(runtimeUTC);
 
         RapturePipelineTask task = new RapturePipelineTask();

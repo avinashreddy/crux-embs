@@ -1,8 +1,10 @@
 package com.crux.embs;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Unzip {
+
 
     public List<String> unzip(String fileZip, String targetDir) {
 
@@ -19,7 +22,7 @@ public class Unzip {
         }
         List<String> ret = new ArrayList<>();
         try {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[1024 * 10 * 10];
             ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
             ZipEntry zipEntry = zis.getNextEntry();
 
