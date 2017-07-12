@@ -1,32 +1,18 @@
 package rapture.dp.invocable.embs;
 
 import com.crux.embs.CSVLineTransformer;
-import com.crux.embs.FTPConfigLoader;
-import com.crux.embs.FileProcessingRequest;
-import com.crux.embs.FileProcessingRequestLookup;
 import com.crux.embs.FileSplitter2;
 import com.crux.embs.Gzip;
 import com.crux.embs.LineTransformer;
 import com.crux.embs.Unzip;
 import com.google.common.base.Preconditions;
-import com.matrix.common.Config;
 import com.matrix.workflow.AbstractSingleOutcomeStep;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.ftp.FTPClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import rapture.common.CallingContext;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -65,10 +51,9 @@ public class TransformFileStep extends AbstractSingleOutcomeStep {
 
     private String transform(String file, String targetDir, String sourceFileName) throws IOException {
         LineTransformer lt = new MetadataAddingLineTransformer(
-                getContextValue("REQUEST_TIME_UTC") + "," + new File(sourceFileName).getName() + ",");
+                "," + getContextValue("REQUEST_TIME_UTC") + "," + new File(sourceFileName).getName());
         Map<String, Object> ret = fileSplitter.split(
-                file, targetDir,
-                lt, ".DAT");
+                file, targetDir, lt);
         setContextLiteral("FILE_LINE_COUNT", String.valueOf(ret.get("lineCount")));
         return (String) ret.get("fileName");
     }
@@ -77,17 +62,17 @@ public class TransformFileStep extends AbstractSingleOutcomeStep {
 
         private final LineTransformer lineTransformer = new CSVLineTransformer();
 
-        private final String prefix;
+        private final String suffix;
 
-        public MetadataAddingLineTransformer(String prefix) {
-            Preconditions.checkArgument(StringUtils.isNoneEmpty(prefix), "prefix is null/empty");
-            this.prefix = prefix;
+        public MetadataAddingLineTransformer(String suffix) {
+            Preconditions.checkArgument(StringUtils.isNoneEmpty(suffix), "suffix is null/empty");
+            this.suffix = suffix;
         }
 
         @Override
         public String transFormLine(String line) {
-            return prefix.concat(lineTransformer.transFormLine(line));
-//            return prefix.concat(line);
+            return lineTransformer.transFormLine(line).concat(suffix);
+//            return suffix.concat(line);
         }
     }
 }

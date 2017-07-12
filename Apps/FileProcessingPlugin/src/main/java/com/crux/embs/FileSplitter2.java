@@ -24,7 +24,7 @@ public class FileSplitter2 {
         this.log = logger;
     }
 
-    public Map<String, Object> split(String filePath, String targetDir, LineTransformer lineTransformer, String extension) {
+    public Map<String, Object> split(String filePath, String targetDir, LineTransformer lineTransformer) {
         log.info(String.format("Processing file %s", filePath));
         final LineIterator it;
         try {
@@ -35,7 +35,7 @@ public class FileSplitter2 {
 
 
         BufferedWriter buffer = null;
-        final String targetFile = getTargetFile(filePath, targetDir, extension);
+        final String targetFile = getTargetFile(filePath, targetDir);
         int lineCount = 0;
         try {
             if(new File(targetFile).exists()) {
@@ -73,9 +73,9 @@ public class FileSplitter2 {
         return StringUtils.countMatches(line, s);
     }
 
-    private String getTargetFile(String filePath, String targetDir, String extension) {
+    private String getTargetFile(String filePath, String targetDir) {
         File f = new File(filePath);
-        return targetDir + "/" + f.getName() + extension;
+        return targetDir + "/" + f.getName() + "." + System.currentTimeMillis();
     }
 
     private void writeToFile_(String filePath, List<String> lines) {
@@ -112,7 +112,7 @@ public class FileSplitter2 {
         splitter2.split(
                 "/Users/avinash.palicharla/embs-ftp-emulator/Products/GNM_LDST.DAT",
                 "/Users/avinash.palicharla/embs-ftp-emulator/Products/temp",
-                new TransformFileStep.MetadataAddingLineTransformer("aaaaaaaaaa,bbbbbbbb,"),
+                new TransformFileStep.MetadataAddingLineTransformer("aaaaaaaaaa,bbbbbbbb,")
 //                new LineTransformer() {
 //                    final String x = "aaaaaaaaaa|bbbbbbbb|";
 //
@@ -121,7 +121,7 @@ public class FileSplitter2 {
 //                        return x.concat(line);
 //                    }
 //                },
-                ".DAT"
+
         );
         System.out.println((System.currentTimeMillis() - start) / 1000);
     }

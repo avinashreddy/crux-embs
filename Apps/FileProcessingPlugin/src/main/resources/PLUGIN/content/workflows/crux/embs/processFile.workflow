@@ -35,12 +35,24 @@
     "executable" : "dp_java_invocable://embs.DownloadFileStep",
     "transitions" : [ {
       "name" : "next",
-      "targetStep" : "transformFile"
+      "targetStep" : "deleteSignalFile"
     }, {
       "name" : "",
       "targetStep" : "$FAIL"
     } ]
   },
+    {
+      "name" : "deleteSignalFile",
+      "description" : "upload file to crux",
+      "executable" : "dp_java_invocable://embs.DeleteSignalFileStep",
+      "transitions" : [ {
+        "name" : "next",
+        "targetStep" : "transformFile"
+      }, {
+        "name" : "",
+        "targetStep" : "$FAIL"
+      } ]
+    },
     {
       "name" : "transformFile",
       "description" : "Transform zip file to gzip. Add timestamp and source columns.",
@@ -109,7 +121,7 @@
   "jarUriDependencies" : ["jar://workflows/dynamic/*"],
   "category" : "embs",
     "view": {
-        "JOBNAME": "warehouseJob",
+        "JOBNAME": "EMBSDataloadJob",
         "CONFIGURATION" : "[\"document://configs/crux/embs/workflow/config\", \"document://configs/crux/embs/workflow/messages\"]"
     }
 }

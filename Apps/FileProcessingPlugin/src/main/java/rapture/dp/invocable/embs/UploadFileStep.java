@@ -11,6 +11,11 @@ import rapture.common.CallingContext;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Date;
 
 public class UploadFileStep extends AbstractSingleOutcomeStep {
 
@@ -34,17 +39,16 @@ public class UploadFileStep extends AbstractSingleOutcomeStep {
         Preconditions.checkState(file.exists(), "[%s] does not exist", gzipFilePath);
 
         log.info(String.format("Uploading file [%s]", file.getAbsolutePath()));
-        crux.uploadFile(getContextValue("cruxDatasetId"), file.getName(), getTargerDir(file.getAbsolutePath()), file.getAbsolutePath());
+        final String targetDir = getTargerDir(getContextValue("REQUEST_TIME_UTC"));
+        crux.uploadFile(getContextValue("cruxDatasetId"), file.getName(), targetDir, file.getAbsolutePath());
         log.info("Uploaded file " + file.getAbsolutePath());
-
         setContextLiteral("CRUX_FILE_PATH", Paths.get("/", file.getName()).toString());
-//        setContextLiteral("CRUX_FILE_PATH", Paths.get(getTargerDir(file.getAbsolutePath()), file.getName()).toString());
+//        setContextLiteral("CRUX_FILE_PATH", Paths.get(targetDir, file.getName()).toString());
     }
 
-    private String getTargerDir(String absoluteFile) {
-        Path fileParent = Paths.get(absoluteFile).getParent();
-        Path workDir = Paths.get(getContextValue("TEMP_WORK_DIR"));
-
-        return  "/" + fileParent.subpath(workDir.getNameCount(), fileParent.getNameCount()).toString();
+    private static String getTargerDir(String utcDateTime) throws ParseException {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = df.parse(utcDateTime.substring(0, utcDateTime.indexOf("T")));
+        return  "/files/" + new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 }

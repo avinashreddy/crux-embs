@@ -1,6 +1,7 @@
 package com.crux.embs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -16,9 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Crux {
 
@@ -52,13 +57,30 @@ public class Crux {
         restTemplate = new RestTemplate();
     }
 
-    public boolean tableExists(String datasetId, String tableName) {
+    public Map<String, Object> getTable(String datasetId, String tableName) {
         String obj = restTemplate.getForObject(
                 apiurl + "/datasets/{datasetId}/tables/{tableName}?apikey={apikey}",
                 String.class,
-                 datasetId,  tableName, apiKey);
-        return StringUtils.hasText(obj);
+                datasetId,  tableName, apiKey);
+        if(StringUtils.hasText(obj)) {
+            try {
+                return objectMapper.readValue(obj, new TypeReference<Map<String, Object>>(){});
+            } catch (IOException e) {
+                throw new IllegalStateException("Error parsing json - " + obj, e);
+            }
+        }
+        return null;
     }
+
+    public boolean tableExists(String datasetId, String tableName) {
+        return getTable(datasetId, tableName) != null;
+    }
+
+    public boolean fileExists(String datasetId, String tableName) {
+        //API is same for table and files and all resources
+        return getTable(datasetId, tableName) != null;
+    }
+
 
     public void ensureTableExists(String datasetId, String tableName, String schema) {
         //TODO: distributed lock required. Or make table creation a separate process.
@@ -112,14 +134,15 @@ public class Crux {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         HttpEntity<LinkedMultiValueMap<String, Object>> entity = new HttpEntity<>(map, headers);
-        ResponseEntity<String> result = restTemplate.postForEntity(apiurl + "/pushfile/{datasetId}?apikey={apikey}",
-                entity,
-                String.class,
-                datasetId  , apiKey);
-        while (!tableExists(datasetId, new File(filePath).getName())) {
-            log.info("Uploading file " + new File(filePath).getName());
-            sleep(5000);
+        try {
+            ResponseEntity<String> result = restTemplate.postForEntity(apiurl + "/pushfile/{datasetId}?apikey={apikey}",
+                    entity,
+                    String.class,
+                    datasetId, apiKey);
+        }catch(ResourceAccessException e) {
+
         }
+
         log.info(String.format("Uploaded file [%s] to [%s]", filePath, targetDir));
 
     }
