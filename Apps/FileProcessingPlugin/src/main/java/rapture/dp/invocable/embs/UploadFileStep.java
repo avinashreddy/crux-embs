@@ -42,8 +42,8 @@ public class UploadFileStep extends AbstractSingleOutcomeStep {
         final String targetDir = getTargerDir(getContextValue("REQUEST_TIME_UTC"));
         crux.uploadFile(getContextValue("cruxDatasetId"), file.getName(), targetDir, file.getAbsolutePath());
         log.info("Uploaded file " + file.getAbsolutePath());
-        setContextLiteral("CRUX_FILE_PATH", Paths.get("/", file.getName()).toString());
-//        setContextLiteral("CRUX_FILE_PATH", Paths.get(targetDir, file.getName()).toString());
+//        setContextLiteral("CRUX_FILE_PATH", Paths.get("/", file.getName()).toString());
+        setContextLiteral("CRUX_FILE_PATH", Paths.get(targetDir, file.getName()).toString());
     }
 
     private static String getTargerDir(String utcDateTime) throws ParseException {

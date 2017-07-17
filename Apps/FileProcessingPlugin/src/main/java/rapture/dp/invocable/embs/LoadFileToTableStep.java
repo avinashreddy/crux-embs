@@ -26,14 +26,14 @@ public class LoadFileToTableStep extends AbstractSingleOutcomeStep {
 
     @Override
     protected void execute(CallingContext ctx) throws Exception {
-        try {
+//        try {
             doExecute(ctx);
-        }catch(Exception e) {
-            if(1 < 2) {
-                int i = 0;
-                System.out.print(i);
-            }
-        }
+//        }catch(Exception e) {
+//            if(1 < 2) {
+//                int i = 0;
+//                System.out.print(i);
+//            }
+//        }
     }
 
     protected void doExecute(CallingContext ctx) throws Exception {
