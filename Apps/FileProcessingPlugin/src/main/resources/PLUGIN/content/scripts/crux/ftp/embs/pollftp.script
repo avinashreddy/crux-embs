@@ -7,6 +7,15 @@ pipelineTask['contentType'] = 'text/vnd.rapture.ftp.poll';
 
 request['files'] = [
      "ARMINDEX",
+     "FHL_AGGD",
+     "FNM_AGGD",
+     "GNM_AGGD",
+     "GNM_AGGH",
+     "GNM_AGGR",
+     "FNM_AGGR",
+     "FHL_AGGH",
+     "FNM_AGGH",
+     "FHL_AGGR",
      "FHL_ARST",
      "FHL_FH",
      "FHL_LLMD",

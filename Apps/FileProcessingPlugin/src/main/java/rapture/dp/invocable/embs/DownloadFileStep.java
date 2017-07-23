@@ -98,4 +98,35 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
         return dir;
     }
 
+//    public static void main(String[] a) {
+//
+//            FTPClient client = new FTPClient();
+//            OutputStream outputStream = null;
+//            try {
+//                client.connect(ftpConfig.getString("host"));
+//                client.login(ftpConfig.getString("user"), ftpConfig.getString("password"));
+//                client.enterLocalPassiveMode();
+//                client.setFileType(FTP.BINARY_FILE_TYPE);
+//                log.info("Downloading file " + request.getProductFileName());
+//                File tempDir = createWorkDir(request.getProductFileName());
+//                File downloadFile = Paths.get(tempDir.getAbsolutePath(), new File(request.getProductFileName()).getName()).toFile();
+//                outputStream = new BufferedOutputStream(new FileOutputStream(downloadFile));
+//                boolean success = client.retrieveFile(request.getProductFileName(), outputStream);
+//                Preconditions.checkState(success,
+//                        "Could not download file '%s' to '%s'",
+//                        request.getProductFileName(),
+//                        downloadFile.getAbsolutePath());
+//                log.info(String.format("Downloaded file '%s' to '%s'", request.getProductFileName(), downloadFile.getAbsolutePath()));
+//
+//                setContextLiteral("FILE_DIR", tempDir.toString());
+//                setContextLiteral("ZIP_FILE_PATH", downloadFile.getAbsolutePath());
+//                setContextLiteral("REQUEST_TIME_UTC", request.getRequestTimeUTC());
+//            } finally {
+//                if (outputStream != null) {
+//                    outputStream.close();
+//                }
+//                client.disconnect();
+//            }
+//    }
+
 }

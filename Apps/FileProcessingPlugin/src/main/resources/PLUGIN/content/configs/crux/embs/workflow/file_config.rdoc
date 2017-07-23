@@ -1,6 +1,9 @@
 {
 "config" :
 [
+  {"fileType":"AGGR", "table" : "aggr", "updateType" : "RL"},
+  {"fileType":"AGGD", "table" : "aggrdesc", "updateType" : "RL"},
+  {"fileType":"AGGH", "table" : "aggrhist", "updateType" : "RL"},
   {"fileType":"ARM", "table" : "AdjRate", "updateType" : "UI", "pks" : "secid"},
   {"fileType":"ARMF", "table" : "AdjRate", "updateType" : "RL"},
   {"fileType":"ARMINDEX", "table" : "ARMIndex", "updateType" : "RL"},
