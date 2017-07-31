@@ -1,0 +1,39 @@
+version = '1.0.0'
+
+ext {
+    raptureVersion = '3.0.4'
+}
+
+apply plugin: 'java'
+
+mainClassName = "rapture.plugin.app.SelfInstaller"
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url "http://repo.marketcetera.org/maven"
+    }
+}
+
+dependencies {
+    compile "net.rapture:SelfPluginInstallerLib:$raptureVersion"
+}
+
+startScripts {
+    classpath = files(['[REPLACEME]'])
+    doLast {
+        // gradle always puts extra classpaths relative to the lib folder, so we have to replace
+        windowsScript.text = windowsScript.text.replace('%APP_HOME%\\lib\\[REPLACEME]', '%APP_HOME%\\lib\\*;%APP_HOME%\\etc')
+        unixScript.text = unixScript.text.replace('$APP_HOME/lib/[REPLACEME]', '$APP_HOME/lib/*:$APP_HOME/etc')
+    }
+}
+
+installDist {
+//    doLast {
+//        exec {
+//            ignoreExitValue = true
+//            commandLine 'docker', 'build', '-t', 'matrixapps/fixserverconfigplugin:latest', "$buildDir/.."
+//        }
+//    }
+}

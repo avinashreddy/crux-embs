@@ -1,8 +1,0 @@
-{
- "embs" : {
-      "host" : "ftp.embs.com",
-      "user" : "crux1",
-      "password" : "Dsk28Nc21s",
-      "home_dir" : "/"
-  }
-}

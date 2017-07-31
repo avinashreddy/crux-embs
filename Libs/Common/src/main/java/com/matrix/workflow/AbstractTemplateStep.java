@@ -70,6 +70,9 @@ public abstract class AbstractTemplateStep extends AbstractStep {
             log.error("Error in " + getStepName(), e);
             handleException(e);
             return Steps.ERROR;
+        } catch (Throwable t) {
+            log.error("Error in " + getStepName(), t);
+            throw t;
         }
     }
 

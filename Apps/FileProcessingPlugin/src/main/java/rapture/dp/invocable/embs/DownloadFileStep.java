@@ -26,7 +26,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DownloadFileStep extends AbstractSingleOutcomeStep {
+public class DownloadFileStep extends AbstractSingleOutcomeEmbsStep {
 
     public static final String EMBS_FILE_DOWNLOAD = "embs-file-download";
 
@@ -38,17 +38,16 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
     protected void execute(CallingContext ctx) throws Exception {
 //        LockHandle handle = Kernel.getLock().acquireLock(ctx, "lock://semaphore/", EMBS_FILE_DOWNLOAD, 1200, -1);
 //        Preconditions.checkArgument(handle != null, "Cannot aquire lock " + EMBS_FILE_DOWNLOAD);
-        synchronized (String.class) {
+        synchronized (String.class) { //TODO: use lock api
             doExecute();
         }
 //        Kernel.getLock().releaseLock(ctx, "lock://semaphore/", EMBS_FILE_DOWNLOAD, handle);
     }
 
     private void doExecute() throws IOException {
-        final String requestUri = getContextValue("requestURI");
-        log.info("Processing requestURI - " + requestUri);
+        log.info("Processing requestURI - " + getRequestUri());
 
-        final FileProcessingRequest request = FileProcessingRequestLookup.get(this.ctx, requestUri);
+        final FileProcessingRequest request = getFileProcessingRequest();
 
         log.info("Processing request - " + request.toJSON());
 
@@ -72,9 +71,9 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
                     downloadFile.getAbsolutePath());
             log.info(String.format("Downloaded file '%s' to '%s'", request.getProductFileName(), downloadFile.getAbsolutePath()));
 
-            setContextLiteral("FILE_DIR", tempDir.toString());
-            setContextLiteral("ZIP_FILE_PATH", downloadFile.getAbsolutePath());
-            setContextLiteral("REQUEST_TIME_UTC", request.getRequestTimeUTC());
+            setContextLiteral(Constants.FILE_DIR, tempDir.toString());
+            setContextLiteral(Constants.ZIP_FILE_PATH, downloadFile.getAbsolutePath());
+            setContextLiteral(Constants.REQUEST_TIME_UTC, request.getRequestTimeUTC());
         } finally {
             if (outputStream != null) {
                 outputStream.close();
@@ -87,7 +86,7 @@ public class DownloadFileStep extends AbstractSingleOutcomeStep {
         File file = new File(ftpFilePath);
         String root = file.getParent();
         File dir = Paths.get(
-                getContextValue("TEMP_WORK_DIR"),
+                getContextValue(Constants.TEMP_WORK_DIR),
                 file.getName().substring(0, file.getName().indexOf('.')),
                 System.currentTimeMillis() + "",
                 root == null ? "" : root

@@ -1,5 +1,6 @@
 package com.crux.embs;
 
+import com.crux.embs.ftp.EmbsFileGroupProcessor;
 import com.crux.embs.ftp.EmbsFileProcessor;
 import com.crux.embs.ftp.FilePoller;
 import com.matrix.AbstractRaptureServer;
@@ -21,6 +22,7 @@ public class EmbsServer extends AbstractRaptureServer {
         Map<String, QueueHandler> queueHandlers = new HashMap<>();
         queueHandlers.put("text/vnd.rapture.ftp.poll", new FilePoller());
         queueHandlers.put("text/vnd.rapture.ftp.embs.file", new EmbsFileProcessor());
+        queueHandlers.put("text/vnd.rapture.ftp.embs.file.group", new EmbsFileGroupProcessor());
 
         PipelineQueueHandlerRegistrar.setCategoryMembershipWithDefaults(ConfigLoader.getConf().Categories, queueHandlers);
     }

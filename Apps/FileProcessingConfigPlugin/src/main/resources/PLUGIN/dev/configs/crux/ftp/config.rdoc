@@ -1,0 +1,8 @@
+{
+  "embs" : {
+    "host" : "192.168.1.32",
+    "user" : "avinash.palicharla",
+    "password" : "351ser",
+    "home_dir" : "/Users/avinash.palicharla/embs-ftp-emulator/"
+  }
+}

@@ -1,9 +1,0 @@
-{
-  "SLACK_WEBHOOK":"https://hooks.slack.com/services/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",
-  "EMAIL_RECIPIENTS" : "avinashreddy.p@gmail.com",
-  "NOTIFY_TYPE":"EMAIL",
-  "TEMP_WORK_DIR" : "/embs-work",
-  "cruxApiurl" : "http://192.168.1.46:8082/api",
-  "cruxApiKey" : "a84f086e70b6b14a85c47a9dc1f6da88",
-  "cruxDatasetId" : "WyJQcm9maWxlIiwidU9tTFhtRGYydWJXdDRabkJzamR3dlFYVlB2MSIsIkRhdGFTZXQiLDU2NzQwMTU3OTY0OTQzMzZd"
-}

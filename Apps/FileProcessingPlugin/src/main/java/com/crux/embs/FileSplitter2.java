@@ -112,7 +112,7 @@ public class FileSplitter2 {
         splitter2.split(
                 "/Users/avinash.palicharla/embs-ftp-emulator/Products/GNM_LDST.DAT",
                 "/Users/avinash.palicharla/embs-ftp-emulator/Products/temp",
-                new TransformFileStep.MetadataAddingLineTransformer("aaaaaaaaaa,bbbbbbbb,")
+                new TransformFileStep.MetadataAddingLineTransformer("aaaaaaaaaa,bbbbbbbb,", null)
 //                new LineTransformer() {
 //                    final String x = "aaaaaaaaaa|bbbbbbbb|";
 //

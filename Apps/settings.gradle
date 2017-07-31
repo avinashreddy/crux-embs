@@ -1,3 +1,4 @@
 include 'FileProcessingPlugin'
+include 'FileProcessingConfigPlugin'
 include 'EmbsServer'
 

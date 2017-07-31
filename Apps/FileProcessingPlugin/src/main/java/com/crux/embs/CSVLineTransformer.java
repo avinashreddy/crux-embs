@@ -4,6 +4,10 @@ package com.crux.embs;
 public class CSVLineTransformer implements LineTransformer {
 
     public String transFormLine(String line) {
+        return (String) transFormLine(line, false);
+    }
+
+    private Object transFormLine(String line, boolean returnResultObj) {
         String[] cols = line.split("\\|");
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i< cols.length; i++) {
@@ -15,7 +19,16 @@ public class CSVLineTransformer implements LineTransformer {
         if(line.endsWith("|")) {
             sb.append(",\"\"");
         }
+        if(returnResultObj)  {
+            return new TransformResult(sb.toString(), cols);
+        }
+
         return  sb.toString();
+    }
+
+    @Override
+    public TransformResult transFormLineResult(String line) {
+        return null;
     }
 
     public static void main(String a[]) {

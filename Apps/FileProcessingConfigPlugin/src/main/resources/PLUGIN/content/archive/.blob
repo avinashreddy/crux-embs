@@ -1,0 +1,6 @@
+{
+  "authority" : "archive",
+  "description" : "Stores inputs and associated outputs",
+  "config" : "BLOB {} USING MONGODB { prefix=\"archive\" }",
+  "metaConfig" : "REP {} USING MONGODB { prefix=\"archive\"}"
+}

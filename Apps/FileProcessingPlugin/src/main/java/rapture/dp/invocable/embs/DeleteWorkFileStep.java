@@ -14,8 +14,8 @@ public class DeleteWorkFileStep extends AbstractSingleOutcomeStep {
 
     @Override
     protected void execute(CallingContext ctx) throws Exception {
-        String dir = getContextValue("FILE_DIR");
-        log.info("Deletring directory " + dir);
+        String dir = getContextValue(Constants.FILE_DIR);
+        log.info("Deleting directory " + dir);
         FileUtils.deleteDirectory(new File(dir));
     }
 }

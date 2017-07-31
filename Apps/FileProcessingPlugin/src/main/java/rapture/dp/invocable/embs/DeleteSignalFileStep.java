@@ -13,7 +13,7 @@ import rapture.common.CallingContext;
 import java.io.File;
 import java.io.OutputStream;
 
-public class DeleteSignalFileStep extends AbstractSingleOutcomeStep {
+public class DeleteSignalFileStep extends AbstractSingleOutcomeEmbsStep {
 
     public DeleteSignalFileStep(String workerUri, String stepName) {
         super(workerUri, stepName);
@@ -21,7 +21,7 @@ public class DeleteSignalFileStep extends AbstractSingleOutcomeStep {
 
     @Override
     protected void execute(CallingContext ctx) throws Exception {
-        final FileProcessingRequest request = FileProcessingRequestLookup.get(this.ctx, getContextValue("requestURI"));
+        final FileProcessingRequest request = FileProcessingRequestLookup.get(this.ctx, getRequestUri());
         final Config ftpConfig = FTPConfigLoader.load("embs");
 
         FTPClient client = new FTPClient();
