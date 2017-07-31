@@ -26,6 +26,8 @@ public interface CruxApi {
 
     void uploadFile(String datasetId, String fileName, String targetDir, String filePath, String mimetype);
 
+    void loadFileToTable(String datasetId, String fileName, String tableName, char delimiter);
+
     void loadFileToTable(String datasetId, String fileName, String tableName, char delimiter, boolean truncate);
 
     void loadQueryResultsToTable(String datasetId, String query, String tableName, boolean allowLargeResults, String writeDisposition);

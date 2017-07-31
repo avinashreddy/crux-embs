@@ -168,6 +168,11 @@ public class CruxApiImpl implements CruxApi {
     }
 
     @Override
+    public void loadFileToTable(String datasetId, String fileName, String tableName, char delimiter) {
+        loadFileToTable(datasetId, fileName, tableName, delimiter, false);
+    }
+
+    @Override
     public void loadFileToTable(String datasetId, String fileName, String tableName, char delimiter, boolean truncate) {
         Preconditions.checkState(tableExists(datasetId, tableName), "No Table with name %s", tableName);
         if(truncate) {
