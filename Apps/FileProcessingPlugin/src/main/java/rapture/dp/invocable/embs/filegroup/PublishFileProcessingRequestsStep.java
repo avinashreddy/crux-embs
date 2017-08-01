@@ -27,7 +27,7 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
 
         final boolean requiresUpdate;
         if(!getCruxApi().tableExists(getDefaultCruxDatasetId(), table)) {
-            log.info(String.format("Table [%s] does not exist."));
+            log.info(String.format("Table [%s] does not exist.", table));
             getCruxApi().createTable(getDefaultCruxDatasetId(), table, requestGroup.getTableSchema());
             requiresUpdate = false;
         } else {
