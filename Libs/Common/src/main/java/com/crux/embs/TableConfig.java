@@ -47,12 +47,16 @@ public class TableConfig {
 
     @JsonIgnore
     public List<String> getPkColNames() {
-        Preconditions.checkState(hasPks(), "No pks defined for " + this.getTableName());
+        hasPksCheck();
         if(pks.indexOf(",") > 0) {
             return Arrays.stream(pks.split(",")).map(s -> s.toLowerCase()).collect(Collectors.toList());
         } else {
             return Lists.newArrayList(pks);
         }
+    }
+
+    private void hasPksCheck() {
+        Preconditions.checkState(hasPks(), "No pks defined for " + this.getTableName());
     }
 
     @JsonIgnore
@@ -62,6 +66,7 @@ public class TableConfig {
 
     @JsonIgnore
     public String getTableUpdateKey() {
+        hasPksCheck();
         if(getPkColNames().size() == 1) {
             return getColNames().get(0);
         }
@@ -70,6 +75,7 @@ public class TableConfig {
 
     @JsonIgnore
     public int[] getPkColIndices() {
+        hasPksCheck();
         List<String> colNames = getColNames();
         List<String> pkCols = getPkColNames();
         int[] pkIndices = new int[pkCols.size()];

@@ -57,7 +57,7 @@ public class TransformFileStep extends AbstractSingleOutcomeEmbsStep {
 
         LineTransformer lt = null;
 
-        if(request.getTableConfig().getPkColNames().size() == 1) {
+        if(!request.getTableConfig().hasPks() || request.getTableConfig().getPkColNames().size() == 1) {
 
             lt = new MetadataAddingLineTransformer(suffix, null);
 

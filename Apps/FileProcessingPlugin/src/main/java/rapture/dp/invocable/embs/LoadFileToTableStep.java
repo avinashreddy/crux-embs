@@ -25,7 +25,6 @@ public class LoadFileToTableStep extends AbstractSingleOutcomeEmbsStep {
         final FileConfig fileConfig = request.getFileConfig();
         final boolean truncate = fileConfig.isReload();
         final boolean isPartOfGroup = request.isPartOfGroupUpdate();
-        final String datasetId = getDefaultCruxDatasetId();
         final int fileLineCount = Integer.parseInt(getContextValue(Constants.FILE_LINE_COUNT));
 
         Preconditions.checkState(!(truncate && isPartOfGroup),

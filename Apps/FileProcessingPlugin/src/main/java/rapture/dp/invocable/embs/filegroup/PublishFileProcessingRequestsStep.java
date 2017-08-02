@@ -24,6 +24,7 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
 
         final String table = requestGroup.getTable();
         log.info(String.format("Target table is [%s]", table));
+        int rowCount = 0;
 
         final boolean requiresUpdate;
         if(!getCruxApi().tableExists(getDefaultCruxDatasetId(), table)) {
@@ -31,7 +32,7 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
             getCruxApi().createTable(getDefaultCruxDatasetId(), table, requestGroup.getTableSchema());
             requiresUpdate = false;
         } else {
-            final int rowCount = getCruxApi().getRowCount(getDefaultCruxDatasetId(), table);
+            rowCount = getCruxApi().getRowCount(getDefaultCruxDatasetId(), table);
             requiresUpdate = true;
             if(getCruxApi().tableExists(getDefaultCruxDatasetId(), requestGroup.getTempTable())) {
                 getCruxApi().deleteResource(getDefaultCruxDatasetId(), requestGroup.getTempTable());
@@ -46,6 +47,8 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
             if(requiresUpdate) {
                 request = request.clone();
                 request.getTableConfig().setTableName(requestGroup.getTempTable());
+                request.setPartOfGroupUpdate(true);
+            } else if(rowCount == 0) {
                 request.setPartOfGroupUpdate(true);
             }
             //TODO: code copied from FilePoller
