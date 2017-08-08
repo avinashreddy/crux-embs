@@ -18,10 +18,6 @@ public class TableUpdater {
     }
 
     public void loadCruxFileToTable(String cruxFilePath, int fileLineCount, TableConfig tableConfig, boolean truncate) {
-        loadCruxFileToTable(cruxFilePath, fileLineCount, tableConfig, truncate, false);
-    }
-
-    public void loadCruxFileToTable(String cruxFilePath, int fileLineCount, TableConfig tableConfig, boolean truncate, boolean isPartOfGroup) {
         log.info(String.format("Loading crux file [%s] to table [%s]", cruxFilePath, tableConfig.getTableName()));
 
 
@@ -33,10 +29,7 @@ public class TableUpdater {
         log.info(String.format("Record count on file - [%s]", fileLineCount));
 
 
-        if (truncate || isPartOfGroup || tableRowCount == 0) {
-            if (isPartOfGroup) {
-                log.info("Part of group update. Will append file rows to table.");
-            }
+        if (truncate || tableRowCount == 0) {
             cruxApi.loadFileToTable(datasetId, cruxFilePath, tableConfig.getTableName(), ',', truncate);
         } else {
             String tempTable = tableConfig.getTempTableName();

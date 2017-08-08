@@ -18,7 +18,11 @@ public class FileProcessingRequest {
 
     private TableConfig tableConfig;
 
-    private boolean partOfGroupUpdate;
+    /**
+     * Must be set to true if two or more RL (relaod) files are being processed. Without this set to true the table will be truncated twice resulting in
+     * only one file being written to table.
+     */
+    private boolean partOfGroup;
 
     private String requestTimeUTC;
 
@@ -62,14 +66,6 @@ public class FileProcessingRequest {
         this.tableConfig = tableConfig;
     }
 
-    public boolean isPartOfGroupUpdate() {
-        return partOfGroupUpdate;
-    }
-
-    public void setPartOfGroupUpdate(boolean partOfGroupUpdate) {
-        this.partOfGroupUpdate = partOfGroupUpdate;
-    }
-
     @JsonIgnore
     public String getSourceFileColumnVal() {
         return productFileName.substring(productFileName.lastIndexOf("/") + 1);
@@ -77,6 +73,14 @@ public class FileProcessingRequest {
 
     public FileProcessingRequest clone() {
         return fromJSON(toJSON());
+    }
+
+    public boolean isPartOfGroup() {
+        return partOfGroup;
+    }
+
+    public void setPartOfGroup(boolean partOfGroup) {
+        this.partOfGroup = partOfGroup;
     }
 
     public void validate() {

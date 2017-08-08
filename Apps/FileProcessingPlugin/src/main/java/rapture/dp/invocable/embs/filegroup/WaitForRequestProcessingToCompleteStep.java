@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 
 public class WaitForRequestProcessingToCompleteStep extends AbstractSingleOutcomeEmbsStep {
 
-    private final String query = "select source_file, load_time, count(*) row_count from $%s group by source_file, load_time";
-
     public WaitForRequestProcessingToCompleteStep(String workerUri, String stepName) {
         super(workerUri, stepName);
     }
@@ -30,6 +28,7 @@ public class WaitForRequestProcessingToCompleteStep extends AbstractSingleOutcom
             try {
                 Thread.sleep(10_000);
             } catch(InterruptedException e) {
+                log.error("Ignoring InterruptedException.", e);
                 //just ignore!
             }
         }
@@ -37,15 +36,20 @@ public class WaitForRequestProcessingToCompleteStep extends AbstractSingleOutcom
     }
 
     private boolean allFilesInGroupLoaded(List<String> sourceFileNames, String table) {
-        List<Map<String, Object>> rows = (List<Map<String, Object>>) getCruxApi().runAdhocQuery(
-                getDefaultCruxDatasetId(),
-                String.format(query, table),
-                new TypeReference<List<Map<String, Object>>>() {
-                });
+        Preconditions.checkArgument(getCruxApi().tableExists(getDefaultCruxDatasetId(), table) , "table does not exist [%s]", table);
+        final String query = "select count(*) row_count from $%s where source_file = '%s'";
 
-        Preconditions.checkState(rows.size() <= sourceFileNames.size(),
-                "Expecting %s or fewer results. Found %s", sourceFileNames.size(), rows);
-
-        return rows.size() == sourceFileNames.size();
+        for(String fileName : sourceFileNames) {
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) getCruxApi().runAdhocQuery(
+                    getDefaultCruxDatasetId(),
+                    String.format(query, table, fileName),
+                    new TypeReference<List<Map<String, Object>>>() {
+                    });
+            if(0 == (Integer)rows.get(0).get("row_count")) {
+                log.info(fileName + " not yet loaded");
+                return false;
+            }
+        }
+       return true;
     }
 }

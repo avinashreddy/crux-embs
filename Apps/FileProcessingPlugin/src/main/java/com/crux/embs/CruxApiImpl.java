@@ -248,6 +248,7 @@ public class CruxApiImpl implements CruxApi {
 
     @Override
     public String runAdhocQuery(String datasetId, String query) {
+        log.info(String.format("Running adhoc query on [%s]. [%s]",datasetId, query));
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
         ResponseEntity<String> result = restTemplate.getForEntity(
@@ -323,6 +324,25 @@ public class CruxApiImpl implements CruxApi {
                 String.format("select * from $%s where %s not in (select %s from $%s)", targetTable, pk, pk, srcTable),
                 srcTable, true, WRITE_APPEND);
         log.info(String.format("Replacing rows of [%s] with [%s]", targetTable, srcTable));
+        loadQueryResultsToTable(datasetId,
+                String.format("select * from $%s", srcTable),
+                targetTable, true, WRITE_TRUNCATE);
+        deleteResource(datasetId, srcTable);
+    }
+
+    @Override
+    public void overwriteTable(String datasetId, String srcTable, String targetTable) {
+        final Map<String, Object> table = getTable(datasetId, targetTable);
+        Preconditions.checkState(table != null, "No Table with name %s", targetTable);
+        Preconditions.checkState(tableExists(datasetId, targetTable), "No Table with name %s", targetTable);
+        if (isTableEmpty(datasetId, srcTable)) {
+            return;
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        log.info(String.format("Overwriting [%s] with [%s]", targetTable, srcTable));
+
         loadQueryResultsToTable(datasetId,
                 String.format("select * from $%s", srcTable),
                 targetTable, true, WRITE_TRUNCATE);

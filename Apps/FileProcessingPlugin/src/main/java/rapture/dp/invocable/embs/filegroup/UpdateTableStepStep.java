@@ -5,9 +5,9 @@ import com.crux.embs.FileGroupProcessingRequestLookup;
 import com.crux.embs.TableConfig;
 import rapture.common.CallingContext;
 import rapture.dp.invocable.embs.AbstractSingleOutcomeEmbsStep;
+import rapture.dp.invocable.embs.Constants;
 
 public class UpdateTableStepStep extends AbstractSingleOutcomeEmbsStep {
-
 
     public UpdateTableStepStep(String workerUri, String stepName) {
         super(workerUri, stepName);
@@ -18,10 +18,18 @@ public class UpdateTableStepStep extends AbstractSingleOutcomeEmbsStep {
 
         final FileGroupProcessingRequest requestGroup = FileGroupProcessingRequestLookup.get(this.ctx, getContextValue("requestURI"));
 
-        getCruxApi().mergeTable(getDefaultCruxDatasetId(),
-                requestGroup.getTempTable(),
-                requestGroup.getTable(), requestGroup.getTableUpdateKey());
+        if(requestGroup.isReload()) {
+            getCruxApi().overwriteTable(getDefaultCruxDatasetId(),
+                    requestGroup.getTempTable(),
+                    requestGroup.getTable());
+        } else {
+            getCruxApi().mergeTable(getDefaultCruxDatasetId(),
+                    requestGroup.getTempTable(),
+                    requestGroup.getTable(), requestGroup.getTableUpdateKey());
+        }
 
+        setContextLiteral("MESSAGE_BODY",
+                String.format("Table %s updated",
+                        requestGroup.getTable()));
     }
-
 }

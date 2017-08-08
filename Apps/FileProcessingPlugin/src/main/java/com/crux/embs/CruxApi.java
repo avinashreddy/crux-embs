@@ -45,4 +45,7 @@ public interface CruxApi {
     void renameResource(String datasetId, String resource, String newName);
 
     void mergeTable(String datasetId, String srcTable, String targetTable, String pk);
+
+    void overwriteTable(String datasetId, String srcTable, String targetTable);
+
 }

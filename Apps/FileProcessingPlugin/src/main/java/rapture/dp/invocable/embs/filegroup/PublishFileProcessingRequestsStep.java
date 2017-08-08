@@ -26,31 +26,25 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
         log.info(String.format("Target table is [%s]", table));
         int rowCount = 0;
 
-        final boolean requiresUpdate;
-        if(!getCruxApi().tableExists(getDefaultCruxDatasetId(), table)) {
+        if (!getCruxApi().tableExists(getDefaultCruxDatasetId(), table)) {
             log.info(String.format("Table [%s] does not exist.", table));
             getCruxApi().createTable(getDefaultCruxDatasetId(), table, requestGroup.getTableSchema());
-            requiresUpdate = false;
         } else {
             rowCount = getCruxApi().getRowCount(getDefaultCruxDatasetId(), table);
-            requiresUpdate = true;
-            if(getCruxApi().tableExists(getDefaultCruxDatasetId(), requestGroup.getTempTable())) {
-                getCruxApi().deleteResource(getDefaultCruxDatasetId(), requestGroup.getTempTable());
-            }
-            getCruxApi().createTable(getDefaultCruxDatasetId(), requestGroup.getTempTable(), requestGroup.getTableSchema());
-            if(rowCount > 0) {
-                log.info(String.format("[%s] has [%s] rows. Table requires an update.", table, requestGroup));
-            }
+        }
+        log.info(String.format("[%s] has [%s] rows.", table, rowCount));
+
+        if(rowCount > 0) {
+            createTempTable(requestGroup.getTempTable(), requestGroup.getTableSchema());
         }
 
         for (FileProcessingRequest request : requestGroup.getFileProcessingRequests()) {
-            if(requiresUpdate) {
-                request = request.clone();
+            request = request.clone();
+            request.setPartOfGroup(true);
+            if(rowCount > 0) {
                 request.getTableConfig().setTableName(requestGroup.getTempTable());
-                request.setPartOfGroupUpdate(true);
-            } else if(rowCount == 0) {
-                request.setPartOfGroupUpdate(true);
             }
+
             //TODO: code copied from FilePoller
             RapturePipelineTask task = new RapturePipelineTask();
             task.setContentType("text/vnd.rapture.ftp.embs.file");
@@ -59,7 +53,7 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
             log.info("Publishing file processing request " + request.toJSON());
             Kernel.getPipeline().publishMessageToCategory(ContextFactory.getKernelUser(), task);
         }
-        if(requiresUpdate) {
+        if (rowCount > 0) {
             return Steps.NEXT;
         } else {
             log.info("No tables updates required. End of workflow.");
@@ -67,4 +61,10 @@ public class PublishFileProcessingRequestsStep extends AbstractEmbsStep {
         }
     }
 
+    private void createTempTable(String tableName, String schema) {
+        if (getCruxApi().tableExists(getDefaultCruxDatasetId(), tableName)) {
+            getCruxApi().deleteResource(getDefaultCruxDatasetId(), tableName);
+        }
+        getCruxApi().createTable(getDefaultCruxDatasetId(), tableName, schema);
+    }
 }

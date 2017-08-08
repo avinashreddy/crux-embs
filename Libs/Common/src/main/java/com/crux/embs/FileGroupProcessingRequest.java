@@ -45,12 +45,26 @@ public class FileGroupProcessingRequest {
         Preconditions.checkState(CollectionUtils.isNotEmpty(fileProcessingRequests), "fileProcessingRequests is null/empty");
         fileProcessingRequests.get(0).validate();
         final String tableName = fileProcessingRequests.get(0).getTableConfig().getTableName();
+        final String updateType = fileProcessingRequests.get(0).getFileConfig().getUpdateType();
         for(FileProcessingRequest request : getFileProcessingRequests()) {
             request.validate();
             Preconditions.checkState(tableName.equalsIgnoreCase(request.getFileConfig().getTable()),
                     "Invalid file grouping. Files mapped to different tables - '%s' and '%s'.",
                     tableName, request.getFileConfig().getTable());
+            Preconditions.checkState(updateType.equalsIgnoreCase(request.getFileConfig().getUpdateType()),
+                    "Invalid file grouping. Files have different update types - '%s' and '%s'.",
+                    updateType, request.getFileConfig().getUpdateType());
         }
+    }
+
+    @JsonIgnore
+    public String getUpdateType() {
+        return fileProcessingRequests.get(0).getFileConfig().getUpdateType();
+    }
+
+    @JsonIgnore
+    public boolean isReload() {
+        return "RL".equalsIgnoreCase(fileProcessingRequests.get(0).getFileConfig().getUpdateType());
     }
 
     public String toJSON() {

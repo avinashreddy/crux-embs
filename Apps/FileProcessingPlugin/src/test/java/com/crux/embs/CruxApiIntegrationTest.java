@@ -1,5 +1,6 @@
 package com.crux.embs;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -7,16 +8,33 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
 
 @Ignore
 public class CruxApiIntegrationTest {
 
-    private String datasetid = "WyJQcm9maWxlIiwidU9tTFhtRGYydWJXdDRabkJzamR3dlFYVlB2MSIsIkRhdGFTZXQiLDU2NjIxNTc1OTMxMTY2NzJd";
+    private String datasetid = "WyJQcm9maWxlIiwidU9tTFhtRGYydWJXdDRabkJzamR3dlFYVlB2MSIsIkRhdGFTZXQiLDU3MDg4NzA0NjI3MzQzMzZd";
 
     CruxApiImpl cruxApi = new CruxApiImpl(
             "http://localhost:8082/api",
             "a84f086e70b6b14a85c47a9dc1f6da88",
             Logger.getLogger(CruxApiImpl.class));
+
+
+    @Test
+    public void aaa() {
+        final String query = "select source_file, load_time, count(*) row_count from $%s group by source_file, load_time";
+        for(int i = 0; i < 10; i++) {
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) cruxApi.runAdhocQuery(
+                   datasetid,
+                    String.format(query, "aggr"),
+                    new TypeReference<List<Map<String, Object>>>() {
+                    });
+            System.out.println(rows);
+        }
+
+    }
 
     @Test
     public void fileExists() {
@@ -30,8 +48,8 @@ public class CruxApiIntegrationTest {
         cruxApi.createTable(datasetid, "country_pop", "cont:string,country:string,pop:integer");
         cruxApi.uploadFile(datasetid, "country_pop.csv", "/", getClasspathFile("TEST_FILE.CSV"), "text/csv");
         cruxApi.loadFileToTable(datasetid, "/country_pop.csv", "country_pop", ',');
-        Assert.assertEquals(5, cruxApi.getRowCount(datasetid, "country_pop"));
-        Assert.assertEquals(5, cruxApi.getQueryRowCount(datasetid, "select * from $country_pop"));
+        Assert.assertEquals(4, cruxApi.getRowCount(datasetid, "country_pop"));
+        Assert.assertEquals(4, cruxApi.getQueryRowCount(datasetid, "select * from $country_pop"));
         deleteResources("country_pop.csv", "country_pop");
     }
 
@@ -86,7 +104,7 @@ public class CruxApiIntegrationTest {
         }
     }
 
-    @Test
+//    @Test
     public void mergeTable2() {
         String datasetid = "WyJQcm9maWxlIiwiZU1CUyIsIkRhdGFTZXQiLDU2Mjk0OTk1MzQyMTMxMjBd";
 
